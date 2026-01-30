@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "adbmcp": {
+      "command": "/home/dracx/Documents/adbmcpserver/venv/bin/python",
+      "args": [
+        "-u",
+        "/home/dracx/Documents/adbmcpserver/adbmcp.py"
+      ]
+    }
+
+  }
+}

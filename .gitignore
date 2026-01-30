@@ -1,0 +1,14 @@
+venv/
+.venv/
+env/
+ENV/
+__pycache__/
+*.py[cod]
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+pip-wheel-metadata/
+build/
+dist/
