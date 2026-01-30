@@ -44,14 +44,15 @@ Runs as a **stdio-based MCP server**.
 {
   "mcpServers": {
     "adbmcp": {
-      "command": "/home/dracx/Documents/adbmcpserver/venv/bin/python",
+      "command": "python",
       "args": [
         "-u",
-        "/home/dracx/Documents/adbmcpserver/adbmcp.py"
+        "adbmcp.py"
       ]
     }
   }
 }
+
 ```
 
 Update paths according to your environment.
