@@ -1,0 +1,14 @@
+{
+    "mcpServers": {
+        "adb-server": {
+            "command": "/home/kishanv/Projects/adbmcpserver/venv/bin/python",
+            "args": [
+                "-m",
+                "mcp_server.server"
+            ],
+            "env": {
+                "PYTHONPATH": "/home/kishanv/Projects/adbmcpserver"
+            }
+        }
+    }
+}

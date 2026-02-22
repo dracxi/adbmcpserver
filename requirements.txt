@@ -1,0 +1,16 @@
+# Core MCP and Android automation dependencies
+mcp>=1.0.0
+uiautomator2>=3.0.0
+pyyaml>=6.0
+
+# Testing dependencies
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+hypothesis>=6.82.0
+pytest-cov>=4.1.0
+
+# Optional OCR support
+pytesseract>=0.3.10
+
+# Utilities
+python-dateutil>=2.8.2

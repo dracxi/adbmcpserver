@@ -1,0 +1,32 @@
+# Android ADB MCP Server Configuration Example
+# Copy this file to config.yaml and customize as needed
+
+# Timeouts (in seconds)
+adb_command_timeout: 30  # Maximum time for ADB command execution
+ui_wait_timeout: 10      # Maximum time to wait for UI elements
+workflow_step_timeout: 15 # Maximum time for workflow step execution
+
+# Retry Configuration
+max_retries: 3           # Maximum number of retry attempts for failed operations
+retry_delay: 1.0         # Initial delay between retries (seconds, exponential backoff)
+
+# Security Settings
+device_allowlist: []     # List of allowed device IDs (empty = allow all)
+                         # Example: ["emulator-5554", "ABC123DEF456"]
+require_pin: false       # Require PIN authentication before automation
+pin_hash: null           # SHA-256 hash of PIN (set when require_pin is true)
+require_confirmation_for_destructive: true  # Require explicit confirmation for destructive actions
+
+# Logging Configuration
+log_level: "INFO"        # Log level: DEBUG, INFO, WARNING, ERROR, CRITICAL
+log_to_file: true        # Write logs to file
+log_file_path: "adb_mcp_server.log"  # Log file path
+
+# Performance Optimization
+enable_element_caching: true  # Cache UI element references
+cache_ttl_seconds: 5          # Cache time-to-live (seconds)
+filter_decorative_elements: true  # Filter non-actionable UI elements
+
+# Optional Features
+enable_ocr_fallback: false         # Use OCR when accessibility tree fails (requires Tesseract)
+enable_workflow_state_cache: false # Cache workflow states for faster repeated operations

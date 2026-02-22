@@ -1,0 +1,244 @@
+# Android ADB MCP Server
+
+A production-ready Model Context Protocol (MCP) server for intelligent Android device automation via ADB. Built with Python, featuring semantic UI interaction, cross-app workflows, and minimal token usage for LLM agents.
+
+## Features
+
+- **ADB Integration**: Full device control via Android Debug Bridge
+- **UI Automation**: Semantic element interaction using uiautomator2 (no raw coordinates)
+- **Multi-Device Support**: Manage multiple connected Android devices
+- **Cross-App Workflows**: Pre-built workflows for Instagram, WhatsApp, Telegram
+- **Context-Efficient**: Minimal token usage with structured JSON responses
+- **Security**: Device allowlist, PIN authentication, destructive action confirmation
+- **Performance**: Element caching, decorative filtering, connection reuse
+- **Production-Ready**: Type hints, comprehensive logging, clean architecture
+
+## Installation
+
+### Prerequisites
+
+1. **Python 3.10+**
+2. **ADB (Android Debug Bridge)**
+   - Install via Android SDK Platform Tools
+   - Or use package manager: `apt install adb` (Linux) or `brew install android-platform-tools` (macOS)
+3. **Android Device or Emulator**
+   - Enable USB debugging in Developer Options
+   - Connect via USB or WiFi
+
+### Install Package
+
+```bash
+# Clone repository
+git clone <repository-url>
+cd android-adb-mcp-server
+
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -e .
+
+# Install development dependencies (optional)
+pip install -e ".[dev]"
+
+# Install OCR support (optional)
+pip install -e ".[ocr]"
+```
+
+### Verify ADB Connection
+
+```bash
+# Check ADB is installed
+adb version
+
+# List connected devices
+adb devices
+
+# Should show:
+# List of devices attached
+# <device_id>    device
+```
+
+## Quick Start
+
+### 1. Run Setup Script
+
+```bash
+./setup.sh
+source venv/bin/activate
+```
+
+### 2. Configure Server (Optional)
+
+Copy and edit `config.example.yaml` to `config.yaml` for custom settings. Default configuration works out of the box.
+
+### 3. Start Server
+
+```bash
+# Start with default config
+python -m mcp_server.server
+
+# Start with custom config
+python -m mcp_server.server /path/to/config.yaml
+```
+
+### 4. Configure MCP Client
+
+See `mcp_configs.json` for configuration examples for various MCP clients (Claude Desktop, Kiro, Cline, Cursor, etc.).
+
+Standard configuration format:
+```json
+{
+  "mcpServers": {
+    "android-adb": {
+      "command": "python",
+      "args": ["-m", "mcp_server.server"],
+      "cwd": "/path/to/android-adb-mcp-server",
+      "env": {
+        "PYTHONPATH": "/path/to/android-adb-mcp-server"
+      }
+    }
+  }
+}
+```
+
+### 5. Use MCP Tools
+
+The server exposes the following tools via MCP protocol:
+
+#### Device Management
+- `list_devices()` - List all connected devices
+- `select_device(device_id)` - Set active device
+
+#### App Control
+- `open_app(app_name, package=None)` - Launch application
+- `navigate_back()` - Press back button
+- `navigate_home()` - Go to home screen
+
+#### UI Interaction
+- `tap(text=None, content_desc=None, resource_id=None)` - Tap element
+- `type_text(text, element_identifier=None)` - Type text
+- `find_element(...)` - Locate UI elements
+- `get_current_screen_structure()` - Get screen layout
+
+#### Workflows
+- `send_message(app_name, contact_name, message)` - Send message via app
+- `extract_otp()` - Extract OTP from SMS
+- `read_screen_text()` - Read all visible text
+
+#### Utilities
+- `take_screenshot()` - Capture screen
+- `install_app(apk_path)` - Install APK
+- `uninstall_app(package, confirm=False)` - Remove app
+- `get_notifications()` - Retrieve notifications
+
+## Architecture
+
+### Layered Design
+```
+MCP Server Layer (server.py)
+    ↓
+App Actions Layer (app_actions.py) - High-level workflows
+    ↓
+UI Controller Layer (ui_controller.py) - Semantic interaction
+    ↓
+ADB Controller Layer (adb_controller.py) - Low-level commands
+    ↓
+Device Manager Layer (device_manager.py) - Multi-device routing
+```
+
+### Project Structure
+```
+mcp_server/
+├── server.py           # MCP server with 15+ tools
+├── adb_controller.py   # ADB command execution
+├── ui_controller.py    # UI automation with uiautomator2
+├── device_manager.py   # Multi-device management
+├── app_actions.py      # Cross-app workflows
+├── config.py           # Configuration management
+└── utils/
+    ├── logging.py      # Logging utilities
+    └── text_processing.py  # Text utilities
+```
+
+## Development
+
+### Run Tests
+
+```bash
+# Run all tests
+pytest
+
+# Run with coverage
+pytest --cov=mcp_server --cov-report=html
+
+# Run specific test file
+pytest tests/unit/test_adb_controller.py
+
+# Run property-based tests
+pytest tests/unit/ -k "property"
+```
+
+### Code Style
+
+Follow PEP 8 guidelines. Use type hints throughout.
+
+## Examples
+
+See `examples/` directory for:
+- `tool_calls.py` - Example MCP tool invocations
+- `test_scenario.py` - End-to-end test scenarios
+
+### Example: Send WhatsApp Message
+```python
+{
+  "tool": "send_message",
+  "parameters": {
+    "app_name": "whatsapp",
+    "contact_name": "John Doe",
+    "message": "Hello from MCP!"
+  }
+}
+```
+
+### Example: Extract OTP
+```python
+{
+  "tool": "extract_otp",
+  "parameters": {}
+}
+```
+
+## Documentation
+
+- **README.md** - This file (overview and quick start)
+- **QUICKSTART.md** - Detailed quick start guide
+- **mcp_configs.json** - MCP client configuration examples
+- **config.example.yaml** - Annotated configuration example
+
+## Troubleshooting
+
+### Server Not Starting
+- Check Python version: `python --version` (must be 3.10+)
+- Verify dependencies: `pip list | grep mcp`
+- Check ADB: `adb devices`
+- Review logs: `cat adb_mcp_server.log`
+
+### Device Not Found
+- Run: `adb devices`
+- Enable USB debugging on device
+- Try: `adb kill-server && adb start-server`
+
+### Tools Not Appearing in MCP Client
+- Restart MCP client application
+- Verify PYTHONPATH is set correctly
+- Test server manually: `python -m mcp_server.server`
+
+## License
+
+MIT License
+
+## Contributing
+
+Contributions welcome! Please open an issue or pull request.
