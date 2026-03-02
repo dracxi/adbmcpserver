@@ -1,0 +1,114 @@
+# App-Specific Workflow Definitions
+# Define exact UI paths and actions for common tasks
+
+whatsapp:
+  package: "com.whatsapp"
+  workflows:
+    send_message:
+      steps:
+        # Step 1: Tap the search bar on main screen
+        - action: tap
+          selector:
+            resource_id: "com.whatsapp:id/my_search_bar"
+            description: "Search bar"
+        
+        # Step 2: Type contact name in search field
+        - action: type_text
+          selector:
+            resource_id: "com.whatsapp:id/search_input"
+            description: "Search input field"
+          input: "{contact_name}"
+        
+        # Step 3: Wait for search results
+        - action: wait
+          duration: 1
+        
+        # Step 4: Tap on the contact from search results
+        - action: tap
+          selector:
+            text: "{contact_name}"
+            description: "Select contact from search results"
+        
+        # Step 5: Tap the message input field
+        - action: tap
+          selector:
+            resource_id: "com.whatsapp:id/entry"
+            description: "Message input field"
+        
+        # Step 6: Type the message
+        - action: type_text
+          input: "{message}"
+        
+        # Step 7: Tap send button
+        - action: tap
+          selector:
+            resource_id: "com.whatsapp:id/send"
+            description: "Send button"
+
+instagram:
+  package: "com.instagram.android"
+  workflows:
+    send_dm:
+      steps:
+        - action: tap
+          selector:
+            content_desc: "Direct"
+        
+        - action: tap
+          selector:
+            content_desc: "New message"
+        
+        - action: type_text
+          selector:
+            text: "Search..."
+          input: "{contact_name}"
+        
+        - action: wait
+          duration: 1
+        
+        - action: tap
+          selector:
+            text: "{contact_name}"
+        
+        - action: tap
+          selector:
+            text: "Chat"
+        
+        - action: type_text
+          selector:
+            text: "Message..."
+          input: "{message}"
+        
+        - action: tap
+          selector:
+            content_desc: "Send"
+
+telegram:
+  package: "org.telegram.messenger"
+  workflows:
+    send_message:
+      steps:
+        - action: tap
+          selector:
+            content_desc: "New Message"
+        
+        - action: type_text
+          selector:
+            text: "Search"
+          input: "{contact_name}"
+        
+        - action: wait
+          duration: 1
+        
+        - action: tap
+          selector:
+            text: "{contact_name}"
+        
+        - action: type_text
+          selector:
+            content_desc: "Message"
+          input: "{message}"
+        
+        - action: tap
+          selector:
+            content_desc: "Send"

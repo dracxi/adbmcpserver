@@ -172,28 +172,53 @@ class ADBController:
         return result.success and "Success" in result.stdout
     
     def launch_app(self, package: str, activity: Optional[str] = None) -> bool:
-            """
-            Launch application by package name.
+        """
+        Launch application by package name.
 
-            Args:
-                package: Package name
-                activity: Optional activity name (uses default if not specified)
+        Args:
+            package: Package name
+            activity: Optional activity name (uses default if not specified)
 
-            Returns:
-                True if launch succeeded
-            """
-            if activity:
-                # Use am start with explicit activity
-                component = f"{package}/{activity}"
+        Returns:
+            True if launch succeeded
+        """
+        if activity:
+            # Use am start with explicit activity
+            component = f"{package}/{activity}"
+            result = self.execute_command([
+                "shell", "am", "start", "-n", component
+            ])
+            return result.success
+        
+        # Try to get launcher activity using cmd package resolve-activity
+        result = self.execute_command([
+            "shell", "cmd", "package", "resolve-activity", "--brief", package
+        ])
+        
+        if result.success and result.stdout.strip():
+            # Output format: package/activity
+            component = result.stdout.strip().split('\n')[-1]
+            if '/' in component:
                 result = self.execute_command([
                     "shell", "am", "start", "-n", component
                 ])
-            else:
-                # Use monkey to launch app with default launcher activity
-                result = self.execute_command([
-                    "shell", "monkey", "-p", package, "-c", "android.intent.category.LAUNCHER", "1"
-                ])
-            return result.success
+                if result.success:
+                    return True
+        
+        # Fallback: use am start with intent
+        result = self.execute_command([
+            "shell", "am", "start", "-a", "android.intent.action.MAIN", 
+            "-c", "android.intent.category.LAUNCHER", package
+        ])
+        
+        if result.success:
+            return True
+        
+        # Last resort: use monkey
+        result = self.execute_command([
+            "shell", "monkey", "-p", package, "-c", "android.intent.category.LAUNCHER", "1"
+        ])
+        return result.success
     
     def force_stop(self, package: str) -> bool:
         """

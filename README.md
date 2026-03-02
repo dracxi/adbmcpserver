@@ -8,6 +8,7 @@ A production-ready Model Context Protocol (MCP) server for intelligent Android d
 - **UI Automation**: Semantic element interaction using uiautomator2 (no raw coordinates)
 - **Multi-Device Support**: Manage multiple connected Android devices
 - **Cross-App Workflows**: Pre-built workflows for Instagram, WhatsApp, Telegram
+- **Workflow System**: Define exact UI paths without increasing context/tokens ⭐ NEW
 - **Context-Efficient**: Minimal token usage with structured JSON responses
 - **Security**: Device allowlist, PIN authentication, destructive action confirmation
 - **Performance**: Element caching, decorative filtering, connection reuse
@@ -124,6 +125,8 @@ The server exposes the following tools via MCP protocol:
 
 #### Workflows
 - `send_message(app_name, contact_name, message)` - Send message via app
+- `execute_workflow(app_name, workflow_name, parameters)` - Execute predefined workflow ⭐ NEW
+- `list_workflows()` - List all available workflows ⭐ NEW
 - `extract_otp()` - Extract OTP from SMS
 - `read_screen_text()` - Read all visible text
 
@@ -141,12 +144,77 @@ MCP Server Layer (server.py)
     ↓
 App Actions Layer (app_actions.py) - High-level workflows
     ↓
+Workflow Engine (workflow_engine.py) - Predefined UI paths ⭐ NEW
+    ↓
 UI Controller Layer (ui_controller.py) - Semantic interaction
     ↓
 ADB Controller Layer (adb_controller.py) - Low-level commands
     ↓
 Device Manager Layer (device_manager.py) - Multi-device routing
 ```
+
+## Workflow System ⭐ NEW
+
+The workflow system allows you to define exact UI paths for common tasks without increasing context or tokens. Perfect for repetitive actions like sending messages.
+
+### Quick Example
+
+Instead of the AI exploring the UI every time:
+```python
+# Old way: 10-15 tool calls, 30-60 seconds
+get_screen_structure() → find_element() → tap() → ...
+```
+
+Use predefined workflows:
+```python
+# New way: 1 tool call, 5-10 seconds
+execute_workflow("whatsapp", "send_message", {
+    "contact_name": "John",
+    "message": "Hi there!"
+})
+```
+
+### Benefits
+
+✅ **10x Faster**: Single tool call vs multiple exploration steps
+✅ **Zero Context Overhead**: Workflows loaded on-demand, not in every prompt
+✅ **Reliable**: Exact UI paths, no guessing or trial-and-error
+✅ **Maintainable**: Update UI paths in one place
+✅ **Scalable**: Add unlimited apps without bloating context
+
+### Available Workflows
+
+- **WhatsApp**: `send_message`
+- **Instagram**: `send_dm`
+- **Telegram**: `send_message`
+
+### Adding Custom Workflows
+
+Edit `app_workflows.yaml`:
+
+```yaml
+gmail:
+  package: "com.google.android.gm"
+  workflows:
+    send_email:
+      steps:
+        - action: tap
+          selector: {content_desc: "Compose"}
+        - action: type_text
+          selector: {text: "To"}
+          input: "{recipient}"
+        - action: type_text
+          selector: {text: "Subject"}
+          input: "{subject}"
+        - action: type_text
+          input: "{body}"
+        - action: tap
+          selector: {content_desc: "Send"}
+```
+
+See `WORKFLOW_GUIDE.md` for detailed documentation.
+
+
 
 ### Project Structure
 ```

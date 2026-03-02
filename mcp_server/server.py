@@ -12,6 +12,7 @@ from mcp.types import Tool, TextContent
 from mcp_server.config import Config
 from mcp_server.device_manager import DeviceManager
 from mcp_server.app_actions import AppActions
+from mcp_server.workflow_engine import WorkflowEngine
 from mcp_server.utils.logging import setup_logging
 
 
@@ -40,6 +41,9 @@ class AndroidADBMCPServer:
         
         # Initialize device manager
         self.device_manager = DeviceManager(device_allowlist=config.device_allowlist)
+        
+        # Initialize workflow engine (will be set after device selection)
+        self.workflow_engine = None
         
         # Register tool handlers
         self._register_tools()
@@ -198,6 +202,46 @@ class AndroidADBMCPServer:
                         "required": ["package"]
                     }
                 ),
+                Tool(
+                    name="swipe",
+                    description="Perform swipe gesture on screen",
+                    inputSchema={
+                        "type": "object",
+                        "properties": {
+                            "start_x": {"type": "number", "description": "Start X coordinate"},
+                            "start_y": {"type": "number", "description": "Start Y coordinate"},
+                            "end_x": {"type": "number", "description": "End X coordinate"},
+                            "end_y": {"type": "number", "description": "End Y coordinate"},
+                            "duration": {"type": "number", "description": "Duration in milliseconds (default: 300)"}
+                        },
+                        "required": ["start_x", "start_y", "end_x", "end_y"]
+                    }
+                ),
+                Tool(
+                    name="execute_workflow",
+                    description="Execute a predefined workflow from app_workflows.yaml. Use this for common tasks like sending messages - it knows the exact UI paths.",
+                    inputSchema={
+                        "type": "object",
+                        "properties": {
+                            "app_name": {"type": "string", "description": "App name (whatsapp, instagram, telegram)"},
+                            "workflow_name": {"type": "string", "description": "Workflow name (e.g., 'send_message')"},
+                            "parameters": {
+                                "type": "object",
+                                "description": "Parameters for the workflow (e.g., {'contact_name': 'John', 'message': 'Hi'})",
+                                "additionalProperties": {"type": "string"}
+                            }
+                        },
+                        "required": ["app_name", "workflow_name", "parameters"]
+                    }
+                ),
+                Tool(
+                    name="list_workflows",
+                    description="List all available predefined workflows by app",
+                    inputSchema={
+                        "type": "object",
+                        "properties": {}
+                    }
+                ),
             ]
         
         @self.server.call_tool()
@@ -247,6 +291,10 @@ class AndroidADBMCPServer:
             ui_controller = self.device_manager.get_ui_controller()
             adb_controller = self.device_manager.get_adb_controller()
             app_actions = AppActions(ui_controller, adb_controller)
+            
+            # Initialize workflow engine if not already done
+            if self.workflow_engine is None:
+                self.workflow_engine = WorkflowEngine(ui_controller)
         except ValueError as e:
             return {"status": "error", "message": str(e)}
         
@@ -271,6 +319,8 @@ class AndroidADBMCPServer:
             return await self._navigate_home(adb_controller)
         elif tool_name == "read_screen_text":
             return await self._read_screen_text(ui_controller)
+        elif tool_name == "swipe":
+            return await self._swipe(adb_controller, parameters)
         
         # Workflow tools
         elif tool_name == "extract_otp":
@@ -283,6 +333,12 @@ class AndroidADBMCPServer:
             return await self._install_app(adb_controller, parameters)
         elif tool_name == "uninstall_app":
             return await self._uninstall_app(adb_controller, parameters)
+        
+        # Workflow tools
+        elif tool_name == "execute_workflow":
+            return await self._execute_workflow(parameters)
+        elif tool_name == "list_workflows":
+            return await self._list_workflows()
         
         else:
             return {"status": "error", "message": f"Unknown tool: {tool_name}"}
@@ -427,6 +483,28 @@ class AndroidADBMCPServer:
         except Exception as e:
             return {"status": "error", "message": str(e)}
     
+    async def _swipe(self, adb_controller, params: dict) -> dict:
+        """Perform swipe gesture."""
+        start_x = int(params["start_x"])
+        start_y = int(params["start_y"])
+        end_x = int(params["end_x"])
+        end_y = int(params["end_y"])
+        duration = int(params.get("duration", 300))
+        
+        try:
+            success = adb_controller.input_swipe(start_x, start_y, end_x, end_y, duration)
+            return {
+                "status": "success" if success else "error",
+                "swipe": {
+                    "start": {"x": start_x, "y": start_y},
+                    "end": {"x": end_x, "y": end_y},
+                    "duration": duration
+                }
+            }
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+
+    
     async def _install_app(self, adb_controller, params: dict) -> dict:
         """Install app."""
         success = adb_controller.install_apk(params["apk_path"])
@@ -442,6 +520,34 @@ class AndroidADBMCPServer:
         
         success = adb_controller.uninstall_package(params["package"])
         return {"status": "success" if success else "error", "package": params["package"]}
+    
+    async def _execute_workflow(self, params: dict) -> dict:
+        """Execute predefined workflow."""
+        if self.workflow_engine is None:
+            return {"status": "error", "message": "No device selected"}
+        
+        result = self.workflow_engine.execute_workflow(
+            app_name=params["app_name"],
+            workflow_name=params["workflow_name"],
+            parameters=params["parameters"]
+        )
+        return result
+    
+    async def _list_workflows(self) -> dict:
+        """List available workflows."""
+        if self.workflow_engine is None:
+            # Try to initialize with default config
+            try:
+                self.workflow_engine = WorkflowEngine(None)
+            except:
+                return {"status": "error", "message": "Cannot load workflows"}
+        
+        workflows = self.workflow_engine.list_available_workflows()
+        return {
+            "status": "success",
+            "workflows": workflows,
+            "total_apps": len(workflows)
+        }
     
     async def run(self):
         """Run the MCP server."""
