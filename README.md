@@ -241,16 +241,38 @@ pytest
 # Run with coverage
 pytest --cov=mcp_server --cov-report=html
 
+# Run unit tests only
+pytest tests/unit/ -v
+
+# Run integration tests
+pytest tests/integration/ -v -m integration
+
 # Run specific test file
 pytest tests/unit/test_adb_controller.py
-
-# Run property-based tests
-pytest tests/unit/ -k "property"
 ```
 
-### Code Style
+### Code Quality
 
-Follow PEP 8 guidelines. Use type hints throughout.
+```bash
+# Format code
+black mcp_server/ tests/
+
+# Sort imports
+isort mcp_server/ tests/
+
+# Lint code
+flake8 mcp_server/ tests/
+
+# Type check
+mypy mcp_server/
+
+# Run all checks
+pre-commit run --all-files
+```
+
+### Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed contribution guidelines.
 
 ## Examples
 
@@ -282,8 +304,13 @@ See `examples/` directory for:
 
 - **README.md** - This file (overview and quick start)
 - **QUICKSTART.md** - Detailed quick start guide
+- **WORKFLOW_GUIDE.md** - Workflow system documentation
+- **TUTORIAL.md** - Step-by-step tutorials
+- **QUICK_REFERENCE.md** - Quick reference guide
+- **CONTRIBUTING.md** - Contribution guidelines
+- **examples/README.md** - Example scripts documentation
+- **config.example.yaml** - Configuration template
 - **mcp_configs.json** - MCP client configuration examples
-- **config.example.yaml** - Annotated configuration example
 
 ## Troubleshooting
 

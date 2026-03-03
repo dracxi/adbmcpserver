@@ -48,40 +48,220 @@ whatsapp:
 instagram:
   package: "com.instagram.android"
   workflows:
-    send_dm:
+    # Check messages in Instagram Direct
+    check_messages:
+      description: "Navigate to Instagram Direct and view message list"
       steps:
+        # Step 1: Open Instagram app
+        - action: open_app
+          package: "com.instagram.android"
+        
+        # Step 2: Wait for app to load
+        - action: wait
+          duration: 2
+        
+        # Step 3: Dismiss any popups (like map feature)
         - action: tap
           selector:
-            content_desc: "Direct"
+            text: "Not now"
+          optional: true
         
+        # Step 4: Tap on Message tab
         - action: tap
           selector:
-            content_desc: "New message"
+            content_desc: "Message"
+            description: "Navigate to Direct Messages"
         
-        - action: type_text
-          selector:
-            text: "Search..."
-          input: "{contact_name}"
-        
+        # Step 5: Wait for messages to load
         - action: wait
           duration: 1
         
+        # Step 6: Read screen to get message list
+        - action: read_screen
+    
+    # Send a direct message to someone (simplified workflow)
+    send_dm:
+      description: "Send a direct message to a specific user"
+      parameters:
+        - contact_name: "Username to send message to"
+        - message: "Message text to send"
+      steps:
+        # Step 1: Tap on Message tab
+        - action: tap
+          selector:
+            content_desc: "Message"
+            description: "Navigate to Direct Messages"
+        
+        # Step 2: Wait for messages screen
+        - action: wait
+          duration: 1
+        
+        # Step 3: Tap on search field
+        - action: tap
+          selector:
+            resource_id: "com.instagram.android:id/search_edit_text"
+            description: "Search for contact"
+        
+        # Step 4: Type contact name in search
+        - action: type_text
+          input: "{contact_name}"
+        
+        # Step 5: Wait for search results
+        - action: wait
+          duration: 1
+        
+        # Step 6: Tap on the contact from results (searches for username in results)
+        - action: tap
+          selector:
+            text: "{contact_name}"
+            description: "Select contact from search results"
+        
+        # Step 7: Wait for chat to open
+        - action: wait
+          duration: 1
+        
+        # Step 8: Tap message input field
+        - action: tap
+          selector:
+            resource_id: "com.instagram.android:id/row_thread_composer_edittext"
+            description: "Message input field"
+        
+        # Step 9: Type message
+        - action: type_text
+          input: "{message}"
+        
+        # Step 10: Tap send button
+        - action: tap
+          selector:
+            content_desc: "Send"
+            description: "Send message button"
+    
+    # Read a specific conversation
+    read_conversation:
+      description: "Open and read messages from a specific contact"
+      parameters:
+        - contact_name: "Username to read messages from"
+      steps:
+        # Step 1: Open Instagram app
+        - action: open_app
+          package: "com.instagram.android"
+        
+        # Step 2: Wait for app to load
+        - action: wait
+          duration: 2
+        
+        # Step 3: Dismiss any popups
+        - action: tap
+          selector:
+            text: "Not now"
+          optional: true
+        
+        # Step 4: Tap on Message tab
+        - action: tap
+          selector:
+            content_desc: "Message"
+            description: "Navigate to Direct Messages"
+        
+        # Step 5: Wait for messages screen
+        - action: wait
+          duration: 1
+        
+        # Step 6: Tap on the conversation
+        - action: tap
+          selector:
+            text: "{contact_name}"
+            description: "Open conversation with contact"
+        
+        # Step 7: Wait for conversation to load
+        - action: wait
+          duration: 1
+        
+        # Step 8: Read the conversation
+        - action: read_screen
+    
+    # Check notifications
+    check_notifications:
+      description: "View Instagram notifications"
+      steps:
+        # Step 1: Open Instagram app
+        - action: open_app
+          package: "com.instagram.android"
+        
+        # Step 2: Wait for app to load
+        - action: wait
+          duration: 2
+        
+        # Step 3: Dismiss any popups
+        - action: tap
+          selector:
+            text: "Not now"
+          optional: true
+        
+        # Step 4: Tap on notification icon (heart icon)
+        - action: tap
+          selector:
+            resource_id: "com.instagram.android:id/notification"
+            content_desc: "Activity"
+            description: "Open notifications"
+        
+        # Step 5: Wait for notifications to load
+        - action: wait
+          duration: 1
+        
+        # Step 6: Read notifications
+        - action: read_screen
+    
+    # Reply to a message
+    reply_to_message:
+      description: "Reply to an existing conversation"
+      parameters:
+        - contact_name: "Username to reply to"
+        - message: "Reply message text"
+      steps:
+        # Step 1: Open Instagram app
+        - action: open_app
+          package: "com.instagram.android"
+        
+        # Step 2: Wait for app to load
+        - action: wait
+          duration: 2
+        
+        # Step 3: Dismiss any popups
+        - action: tap
+          selector:
+            text: "Not now"
+          optional: true
+        
+        # Step 4: Tap on Message tab
+        - action: tap
+          selector:
+            content_desc: "Message"
+        
+        # Step 5: Wait for messages screen
+        - action: wait
+          duration: 1
+        
+        # Step 6: Tap on the conversation
         - action: tap
           selector:
             text: "{contact_name}"
         
-        - action: tap
-          selector:
-            text: "Chat"
+        # Step 7: Wait for conversation to load
+        - action: wait
+          duration: 1
         
+        # Step 8: Type reply message
         - action: type_text
           selector:
             text: "Message..."
+            resource_id: "com.instagram.android:id/row_thread_composer_edittext"
           input: "{message}"
         
+        # Step 9: Tap send button
         - action: tap
           selector:
             content_desc: "Send"
+            resource_id: "com.instagram.android:id/row_thread_composer_button_send"
 
 telegram:
   package: "org.telegram.messenger"

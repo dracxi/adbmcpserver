@@ -31,6 +31,8 @@ ENV/
 .coverage
 htmlcov/
 .hypothesis/
+coverage.xml
+.tox/
 
 # IDE
 .vscode/
@@ -47,7 +49,14 @@ adb_mcp_server.log
 screenshots/
 recordings/
 *.png
+*.jpg
+*.jpeg
+*.gif
 *.mp4
+*.avi
+
+# MCP configs (user-specific)
+mcp_configs.json
 
 # Configuration
 config.yaml

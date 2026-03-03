@@ -1,0 +1,80 @@
+# Sample workflows for testing
+
+test_app:
+  package: "com.example.testapp"
+  workflows:
+    simple_tap:
+      description: "Simple tap workflow for testing"
+      steps:
+        - action: tap
+          selector:
+            text: "Button"
+    
+    type_and_submit:
+      description: "Type text and submit"
+      steps:
+        - action: type_text
+          selector:
+            resource_id: "com.example:id/input"
+          input: "{text}"
+        - action: tap
+          selector:
+            text: "Submit"
+    
+    multi_step:
+      description: "Multi-step workflow with waits"
+      steps:
+        - action: tap
+          selector:
+            content_desc: "Menu"
+        - action: wait
+          duration: 1
+        - action: tap
+          selector:
+            text: "Settings"
+        - action: type_text
+          input: "{value}"
+        - action: tap
+          selector:
+            text: "Save"
+
+whatsapp_test:
+  package: "com.whatsapp"
+  workflows:
+    send_message:
+      description: "Send WhatsApp message (test version)"
+      steps:
+        - action: tap
+          selector:
+            resource_id: "com.whatsapp:id/fab"
+        - action: type_text
+          selector:
+            resource_id: "com.whatsapp:id/search"
+          input: "{contact_name}"
+        - action: wait
+          duration: 1
+        - action: tap
+          selector:
+            text: "{contact_name}"
+        - action: type_text
+          selector:
+            resource_id: "com.whatsapp:id/entry"
+          input: "{message}"
+        - action: tap
+          selector:
+            resource_id: "com.whatsapp:id/send"
+
+error_workflow:
+  package: "com.example.error"
+  workflows:
+    invalid_action:
+      description: "Workflow with invalid action"
+      steps:
+        - action: invalid_action_type
+          selector:
+            text: "Test"
+    
+    missing_selector:
+      description: "Workflow with missing selector"
+      steps:
+        - action: tap

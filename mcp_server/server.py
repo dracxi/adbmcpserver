@@ -242,6 +242,25 @@ class AndroidADBMCPServer:
                         "properties": {}
                     }
                 ),
+                Tool(
+                    name="adb_shell",
+                    description=(
+                        "Execute arbitrary ADB shell command on the active Android device. "
+                        "Returns stdout, stderr, exit code, and execution time. "
+                        "Examples: 'pm list packages', 'getprop ro.build.version.release', "
+                        "'dumpsys battery', 'settings get secure android_id'"
+                    ),
+                    inputSchema={
+                        "type": "object",
+                        "properties": {
+                            "command": {
+                                "type": "string",
+                                "description": "Shell command to execute (without 'adb shell' prefix)"
+                            }
+                        },
+                        "required": ["command"]
+                    }
+                ),
             ]
         
         @self.server.call_tool()
@@ -294,9 +313,17 @@ class AndroidADBMCPServer:
             
             # Initialize workflow engine if not already done
             if self.workflow_engine is None:
-                self.workflow_engine = WorkflowEngine(ui_controller)
+                import os
+                # Find project root (parent of mcp_server package)
+                project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                workflow_path = os.path.join(project_root, "app_workflows.yaml")
+                self.workflow_engine = WorkflowEngine(ui_controller, config_path=workflow_path)
         except ValueError as e:
-            return {"status": "error", "message": str(e)}
+            return {
+                "status": "error",
+                "message": str(e),
+                "timestamp": datetime.now().isoformat()
+            }
         
         # App control tools
         if tool_name == "open_app":
@@ -339,6 +366,10 @@ class AndroidADBMCPServer:
             return await self._execute_workflow(parameters)
         elif tool_name == "list_workflows":
             return await self._list_workflows()
+        
+        # Shell command tool
+        elif tool_name == "adb_shell":
+            return await self._execute_shell(adb_controller, parameters)
         
         else:
             return {"status": "error", "message": f"Unknown tool: {tool_name}"}
@@ -548,6 +579,42 @@ class AndroidADBMCPServer:
             "workflows": workflows,
             "total_apps": len(workflows)
         }
+    
+    async def _execute_shell(self, adb_controller, params: dict) -> dict:
+        """
+        Execute ADB shell command on active device.
+        
+        Args:
+            adb_controller: ADBController instance for the active device
+            params: Dictionary containing 'command' key
+            
+        Returns:
+            Dictionary with status, stdout, stderr, exit_code, and execution_time
+        """
+        command = params.get("command", "")
+        
+        # Execute the shell command
+        result = adb_controller.execute_command(["shell", command])
+        
+        # Format response based on success/failure
+        if result.success:
+            return {
+                "status": "success",
+                "stdout": result.stdout,
+                "stderr": result.stderr,
+                "exit_code": result.exit_code,
+                "execution_time": result.execution_time,
+                "command": command
+            }
+        else:
+            return {
+                "status": "error",
+                "stdout": result.stdout,
+                "stderr": result.stderr,
+                "exit_code": result.exit_code,
+                "execution_time": result.execution_time,
+                "command": command
+            }
     
     async def run(self):
         """Run the MCP server."""

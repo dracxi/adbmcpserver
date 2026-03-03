@@ -1,0 +1,15 @@
+{
+  "enabled": true,
+  "name": "Workflow After Task",
+  "description": "Automatically prompts to create workflow after successful task completion",
+  "version": "1",
+  "when": {
+    "type": "postTaskExecution"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A task has been completed successfully. Ask the user if they want to create or update a workflow based on this task. If they confirm, help them create the appropriate workflow in app_workflows.yaml."
+  },
+  "workspaceFolderName": "adbmcpserver",
+  "shortName": "workflow-after-task"
+}

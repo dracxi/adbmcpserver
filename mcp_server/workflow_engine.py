@@ -19,6 +19,15 @@ class WorkflowEngine:
     def _load_workflows(self, config_path: str) -> Dict[str, Any]:
         """Load workflow definitions from YAML file."""
         path = Path(config_path)
+        
+        # If relative path and doesn't exist, try project root
+        if not path.is_absolute() and not path.exists():
+            # Try looking in the project root (parent of the directory containing this file)
+            project_root = Path(__file__).parent.parent
+            alt_path = project_root / config_path
+            if alt_path.exists():
+                path = alt_path
+        
         if not path.exists():
             return {}
         

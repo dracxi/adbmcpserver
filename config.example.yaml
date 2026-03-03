@@ -1,32 +1,97 @@
-# Android ADB MCP Server Configuration Example
+# Android ADB MCP Server Configuration
 # Copy this file to config.yaml and customize as needed
 
-# Timeouts (in seconds)
-adb_command_timeout: 30  # Maximum time for ADB command execution
-ui_wait_timeout: 10      # Maximum time to wait for UI elements
-workflow_step_timeout: 15 # Maximum time for workflow step execution
+# ADB Configuration
+adb:
+  # Timeout for ADB commands in seconds
+  command_timeout: 30
+  
+  # Path to ADB executable (leave empty to use system PATH)
+  adb_path: ""
+  
+  # Device connection settings
+  connection:
+    # Retry attempts for failed connections
+    max_retries: 3
+    # Delay between retries in seconds
+    retry_delay: 2
 
-# Retry Configuration
-max_retries: 3           # Maximum number of retry attempts for failed operations
-retry_delay: 1.0         # Initial delay between retries (seconds, exponential backoff)
+# UI Automation Configuration
+ui:
+  # Timeout for UI element waits in seconds
+  wait_timeout: 10
+  
+  # Maximum time to wait for app launch in seconds
+  app_launch_timeout: 15
+  
+  # Enable element caching for performance
+  enable_element_caching: true
+  
+  # Cache expiration time in seconds
+  cache_expiration: 30
+  
+  # Filter out decorative elements (images, dividers, etc.)
+  filter_decorative_elements: true
 
-# Security Settings
-device_allowlist: []     # List of allowed device IDs (empty = allow all)
-                         # Example: ["emulator-5554", "ABC123DEF456"]
-require_pin: false       # Require PIN authentication before automation
-pin_hash: null           # SHA-256 hash of PIN (set when require_pin is true)
-require_confirmation_for_destructive: true  # Require explicit confirmation for destructive actions
+# Security Configuration
+security:
+  # List of allowed device IDs (empty list = allow all)
+  device_allowlist: []
+  
+  # Require PIN/password for destructive operations
+  require_pin: false
+  
+  # PIN for destructive operations (if require_pin is true)
+  pin: ""
+  
+  # Require confirmation for app uninstall
+  confirm_uninstall: true
 
 # Logging Configuration
-log_level: "INFO"        # Log level: DEBUG, INFO, WARNING, ERROR, CRITICAL
-log_to_file: true        # Write logs to file
-log_file_path: "adb_mcp_server.log"  # Log file path
+logging:
+  # Log level: DEBUG, INFO, WARNING, ERROR, CRITICAL
+  level: "INFO"
+  
+  # Enable logging to file
+  log_to_file: true
+  
+  # Log file path
+  log_file: "adb_mcp_server.log"
+  
+  # Maximum log file size in MB
+  max_file_size: 10
+  
+  # Number of backup log files to keep
+  backup_count: 3
 
-# Performance Optimization
-enable_element_caching: true  # Cache UI element references
-cache_ttl_seconds: 5          # Cache time-to-live (seconds)
-filter_decorative_elements: true  # Filter non-actionable UI elements
+# Workflow Configuration
+workflows:
+  # Path to workflow definitions file
+  definitions_file: "app_workflows.yaml"
+  
+  # Enable workflow validation on startup
+  validate_on_startup: true
+  
+  # Maximum workflow execution time in seconds
+  max_execution_time: 60
 
-# Optional Features
-enable_ocr_fallback: false         # Use OCR when accessibility tree fails (requires Tesseract)
-enable_workflow_state_cache: false # Cache workflow states for faster repeated operations
+# Performance Configuration
+performance:
+  # Enable performance metrics collection
+  enable_metrics: false
+  
+  # Metrics collection interval in seconds
+  metrics_interval: 60
+
+# App-Specific Configuration
+apps:
+  # Known app packages (for quick lookup)
+  packages:
+    whatsapp: "com.whatsapp"
+    instagram: "com.instagram.android"
+    telegram: "org.telegram.messenger"
+    gmail: "com.google.android.gm"
+    chrome: "com.android.chrome"
+    
+  # Default wait time after app launch in seconds
+  default_launch_wait: 3
